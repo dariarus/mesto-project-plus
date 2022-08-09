@@ -1,125 +1,82 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 
 import User from '../models/user';
+import NotFoundError from '../errors/error-404';
+import BadRequestError from '../errors/error-400';
 
 // получить всех юзеров
-export const getUsers = (req: Request, res: Response) => {
+export const getUsers = (req: Request, res: Response, next: NextFunction) => {
   User.find({})
     .then((users) => {
-      if (users) {
-        res.send(users);
-      } else {
-        throw new Error('Неверно сформирован запрос');
+      if (!users) {
+        throw new Error();
       }
+      res.send(users);
     })
-    // .catch(next);
-    .catch((err) => {
-      res
-        .status(400)
-        .send({
-          message: err.message,
-        });
-    });
+    .catch(next);
 };
 
 // получить юзера по id
-export const getUserById = (req: any, res: Response) => {
+export const getUserById = (req: Request, res: Response, next: NextFunction) => {
   User.findById(req.params.userId)
     .then((user) => {
-      if (user) {
-        res.send(user);
-      } else {
-        throw new Error('Пользователь по указанному _id не найден');
+      if (!user) {
+        throw new NotFoundError('Пользователь по указанному _id не найден');
       }
+      res.send(user);
     })
-    .catch((err) => {
-      console.log(err);
-      res
-        .status(404)
-        .send({
-          message: 'Пользователь по указанному _id не найден',
-        });
-    });
+    .catch(next);
 };
 
 // создать нового юзера
-export const createUser = (req: Request, res: Response) => {
+export const createUser = (req: Request, res: Response, next: NextFunction) => {
   const { name, about, avatar } = req.body;
 
   return User.create({ name, about, avatar })
     .then((user) => {
-      if (!name || !about || !avatar) {
-        throw new Error();
-      } else {
-        res.send(user);
-      }
+      res.send(user);
     })
-    // .catch(next)
-    .catch(() => {
-      res
-        .status(400)
-        .send({
-          message: 'Неверно сформирован запрос',
-        });
-    });
+    .catch(next);
 };
 
 // обновить профиль
-export const updateProfile = (req: any, res: Response) => {
+export const updateProfile = (
+  req: Request & { user?: { _id: string }},
+  res: Response,
+  next: NextFunction,
+) => {
   const { name, about } = req.body;
-  return User.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
+  if ((!name && !about) || req.body.avatar) {
+    next(new BadRequestError());
+  }
+
+  return User.findByIdAndUpdate(req.user?._id, { name, about }, { new: true, runValidators: true })
     .then((user) => {
-      if (req.user._id !== '62ed4d409f02d00a4d5ff8a2' || !name || !about) {
-        console.log('error');
-        throw new Error();
-      } else {
-        console.log('user');
-        res.send(user);
+      if (!user) {
+        throw new NotFoundError('Пользователь по указанному _id не найден');
       }
+      res.send(user);
     })
-    .catch((err) => {
-      console.log(err);
-      // const { statusCode = 500 } = err;
-      if (req.user._id !== '62ed4d409f02d00a4d5ff8a2') {
-        res
-          .status(404)
-          .send({ message: 'Пользователь с указанным _id не найден' });
-        /* }
-        else if (statusCode === 500) {
-          res.send({ message: 'На сервере произошла ошибка' }); */
-      } else {
-        res
-          .status(400)
-          .send({message: 'Неверно сформирован запрос'});
-      }
-    });
+    .catch(next);
 };
 
 // обновить аватар
-export const updateAvatar = (req: any, res: Response) => {
+export const updateAvatar = (
+  req: Request & { user?: { _id: string }},
+  res: Response,
+  next: NextFunction,
+) => {
   const { avatar } = req.body;
-  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
+  if (!avatar || (req.body.name || req.body.about)) {
+    next(new BadRequestError());
+  }
+
+  return User.findByIdAndUpdate(req.user?._id, { avatar }, { new: true, runValidators: true })
     .then((user) => {
-      if (req.user._id !== '62ed4d409f02d00a4d5ff8a2' || !avatar) {
-        throw new Error();
-      } else {
-        res.send(user);
+      if (!user) {
+        throw new NotFoundError('Пользователь по указанному _id не найден');
       }
+      res.send(user);
     })
-    .catch((err) => {
-      console.log(err);
-      // const { statusCode = 500 } = err;
-      if (req.user._id !== '62ed4d409f02d00a4d5ff8a2') {
-        res
-          .status(404)
-          .send({message: 'Пользователь с указанным _id не найден'});
-        /* }
-        else if (statusCode === 500) {
-          res.send({ message: 'На сервере произошла ошибка' }); */
-      } else {
-        res
-          .status(400)
-          .send({ message: 'Неверно сформирован запрос' });
-      }
-    });
+    .catch(next);
 };

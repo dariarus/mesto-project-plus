@@ -8,6 +8,6 @@ export type TCard = {
   name: string,
   imageLink: string,
   ownerId: string,
-  likes: Array<TUser>,
+  likes: Array<string>,
   createdAt: Date,
 };
