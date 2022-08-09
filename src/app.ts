@@ -1,5 +1,4 @@
 import express, { Request, Response, NextFunction } from 'express';
-import path from 'path';
 import mongoose, { Error } from 'mongoose';
 
 import userRouter from './routes/users';
@@ -29,7 +28,6 @@ const runApp = () => {
   });
 
   app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    console.log(err);
     let statusCode;
     let message;
     if (err instanceof NotFoundError || err instanceof BadRequestError) {

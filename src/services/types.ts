@@ -1,3 +1,5 @@
+import mongoose from 'mongoose';
+
 export type TUser = {
   name: string,
   about: string,
@@ -7,7 +9,7 @@ export type TUser = {
 export type TCard = {
   name: string,
   imageLink: string,
-  ownerId: string,
-  likes: Array<string>,
+  ownerId: mongoose.ObjectId,
+  likes: Array<mongoose.ObjectId>,
   createdAt: Date,
 };
