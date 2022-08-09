@@ -11,7 +11,7 @@ export const getCards = (req: Request, res: Response, next: NextFunction) => {
   Card.find({})
     .then((cards) => {
       if (!cards) {
-        throw new Error();
+        res.send([]);
       }
       res.send(cards);
     })
@@ -25,9 +25,6 @@ export const createCard = (
   next: NextFunction,
 ) => {
   const { name, link } = req.body;
-  if (!name || !link) {
-    next(new BadRequestError());
-  }
 
   return Card.create({ name, link, owner: req.user?._id })
     .then((card) => {

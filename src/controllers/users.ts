@@ -9,7 +9,7 @@ export const getUsers = (req: Request, res: Response, next: NextFunction) => {
   User.find({})
     .then((users) => {
       if (!users) {
-        throw new Error();
+        res.send([]);
       }
       res.send(users);
     })
@@ -48,9 +48,10 @@ export const updateProfile = (
   const { name, about } = req.body;
   if ((!name && !about) || req.body.avatar) {
     next(new BadRequestError());
+    return;
   }
 
-  return User.findByIdAndUpdate(req.user?._id, { name, about }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(req.user?._id, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
         throw new NotFoundError('Пользователь по указанному _id не найден');
@@ -69,9 +70,10 @@ export const updateAvatar = (
   const { avatar } = req.body;
   if (!avatar || (req.body.name || req.body.about)) {
     next(new BadRequestError());
+    return;
   }
 
-  return User.findByIdAndUpdate(req.user?._id, { avatar }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(req.user?._id, { avatar }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
         throw new NotFoundError('Пользователь по указанному _id не найден');
