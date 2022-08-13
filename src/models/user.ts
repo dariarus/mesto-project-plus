@@ -4,7 +4,7 @@ import validator from 'validator';
 import { TUser } from '../services/types';
 
 function validateAvatarLink(v: string) {
-  return ('') || /^(https?):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,20}(:[0-9]{1,5})?(\/.*)?$/i.test(v);
+  return ('') || /^(https?):\/\/[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,20}(:[0-9]{1,5})?(\/.*)?$/i.test(v);
 }
 
 const userSchema = new mongoose.Schema({
