@@ -2,7 +2,7 @@ import { JwtPayload } from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 
 import Card from '../models/card';
-import CardOwnerError from '../errors/error-403';
+import UserRightsError from '../errors/error-403';
 import NotFoundError from '../errors/error-404';
 
 const NOT_FOUND_MESSAGE = 'Карточка с указанным _id не найдена';
@@ -35,8 +35,11 @@ export const createCard = (
 };
 
 // удалить карточку
-// eslint-disable-next-line max-len
-export const deleteCard = (req: Request & { user?: JwtPayload | string }, res: Response, next: NextFunction) => {
+export const deleteCard = (
+  req: Request & { user?: JwtPayload | string },
+  res: Response,
+  next: NextFunction,
+) => {
   Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
@@ -44,7 +47,7 @@ export const deleteCard = (req: Request & { user?: JwtPayload | string }, res: R
         return;
       }
       if (String(card.owner) !== (req.user as JwtPayload)._id) {
-        next(new CardOwnerError());
+        next(new UserRightsError());
         return;
       }
       card.remove().then(() => res.send(card)).catch(next);

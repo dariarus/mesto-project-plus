@@ -1,4 +1,4 @@
-class CardOwnerError extends Error implements Error {
+class UserRightsError extends Error implements Error {
   statusCode: number;
 
   static get DEFAULT_STATUS_CODE() {
@@ -9,10 +9,10 @@ class CardOwnerError extends Error implements Error {
     return 'Нельзя удалять чужие карточки';
   }
 
-  constructor(message = CardOwnerError.DEFAULT_MESSAGE) {
+  constructor(message = UserRightsError.DEFAULT_MESSAGE) {
     super(message);
-    this.statusCode = CardOwnerError.DEFAULT_STATUS_CODE;
+    this.statusCode = UserRightsError.DEFAULT_STATUS_CODE;
   }
 }
 
-export default CardOwnerError;
+export default UserRightsError;

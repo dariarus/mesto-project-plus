@@ -13,7 +13,7 @@ import { requestLogger, errorLogger } from './middlewares/logger';
 
 import BadRequestError from './errors/error-400';
 import IncorrectCredentialsError from './errors/error-401';
-import CardOwnerError from './errors/error-403';
+import UserRightsError from './errors/error-403';
 import NotFoundError from './errors/error-404';
 
 import auth from './middlewares/auth';
@@ -59,7 +59,7 @@ const runApp = () => {
     if (err instanceof NotFoundError
       || err instanceof BadRequestError
       || err instanceof IncorrectCredentialsError
-      || err instanceof CardOwnerError) {
+      || err instanceof UserRightsError) {
       ({ statusCode, message } = err);
     } else if (err instanceof mongoose.Error.CastError
       || err instanceof mongoose.Error.ValidationError) {
