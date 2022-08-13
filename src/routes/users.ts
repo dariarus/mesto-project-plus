@@ -1,23 +1,48 @@
 import { Router } from 'express';
+import { celebrate, Joi } from 'celebrate';
 
 import {
   getUsers,
   getUserById,
-  createUser,
   updateProfile,
-  updateAvatar,
+  updateAvatar, getUser,
 } from '../controllers/users';
 
 const router = Router();
 
-router.get('/', getUsers);
+const TOKEN_REGEX = /Bearer\s[A-Za-z0-9\-._~+/]+=*/;
 
-router.get('/:userId', getUserById);
+router.get('/', celebrate({
+  headers: Joi.object().keys({
+    authorization: Joi.string().regex(TOKEN_REGEX).required(),
+  }),
+}), getUsers);
 
-router.post('/', createUser);
+router.get('/me', celebrate({
+  headers: Joi.object().keys({
+    authorization: Joi.string().regex(TOKEN_REGEX).required(),
+  }),
+}), getUser);
 
-router.patch('/me', updateProfile);
+router.get('/:userId', celebrate({
+  headers: Joi.object().keys({
+    authorization: Joi.string().regex(TOKEN_REGEX).required(),
+  }),
+  params: Joi.object().keys({
+    userId: Joi.string().alphanum().length(24),
+  }),
+}), getUserById);
 
-router.patch('/me/avatar', updateAvatar);
+router.patch('/me', celebrate({
+  headers: Joi.object().keys({
+    authorization: Joi.string().regex(TOKEN_REGEX).required(),
+  }),
+}), updateProfile);
+
+router.patch('/me/avatar', celebrate({
+  headers: Joi.object().keys({
+    authorization: Joi.string().regex(TOKEN_REGEX).required(),
+  }).unknown(true),
+}), updateAvatar);
 
 export default router;

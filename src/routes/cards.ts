@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { celebrate, Joi } from 'celebrate';
 
 import {
   getCards,
@@ -10,14 +11,45 @@ import {
 
 const router = Router();
 
-router.get('/', getCards);
+const TOKEN_REGEX = /Bearer\s[A-Za-z0-9\-._~+/]+=*/;
 
-router.post('/', createCard);
+router.get('/', celebrate({
+  headers: Joi.object().keys({
+    authorization: Joi.string().regex(TOKEN_REGEX).required(),
+  }),
+}), getCards);
 
-router.delete('/:cardId', deleteCard);
+router.post('/', celebrate({
+  headers: Joi.object().keys({
+    authorization: Joi.string().regex(TOKEN_REGEX).required(),
+  }),
+}), createCard);
 
-router.put('/:cardId/likes', likeCard);
+router.delete('/:cardId', celebrate({
+  headers: Joi.object().keys({
+    authorization: Joi.string().regex(TOKEN_REGEX).required(),
+  }),
+  params: Joi.object().keys({
+    cardId: Joi.string().alphanum().length(24),
+  }),
+}), deleteCard);
 
-router.delete('/:cardId/likes', dislikeCard);
+router.put('/:cardId/likes', celebrate({
+  headers: Joi.object().keys({
+    authorization: Joi.string().regex(TOKEN_REGEX).required(),
+  }),
+  params: Joi.object().keys({
+    cardId: Joi.string().alphanum().length(24),
+  }),
+}), likeCard);
+
+router.delete('/:cardId/likes', celebrate({
+  headers: Joi.object().keys({
+    authorization: Joi.string().regex(TOKEN_REGEX).required(),
+  }),
+  params: Joi.object().keys({
+    cardId: Joi.string().alphanum().length(24),
+  }),
+}), dislikeCard);
 
 export default router;

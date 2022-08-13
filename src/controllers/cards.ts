@@ -1,10 +1,11 @@
-import mongoose from 'mongoose';
-
+import { JwtPayload } from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 
 import Card from '../models/card';
-import BadRequestError from '../errors/error-400';
+import CardOwnerError from '../errors/error-403';
 import NotFoundError from '../errors/error-404';
+
+const NOT_FOUND_MESSAGE = 'Карточка с указанным _id не найдена';
 
 // получить все карточки
 export const getCards = (req: Request, res: Response, next: NextFunction) => {
@@ -20,13 +21,13 @@ export const getCards = (req: Request, res: Response, next: NextFunction) => {
 
 // создать новую карточку
 export const createCard = (
-  req: Request & { user?: { _id: string }},
+  req: Request & { user?: JwtPayload | string },
   res: Response,
   next: NextFunction,
 ) => {
   const { name, link } = req.body;
 
-  return Card.create({ name, link, owner: req.user?._id })
+  return Card.create({ name, link, owner: req.user })
     .then((card) => {
       res.send(card);
     })
@@ -34,31 +35,39 @@ export const createCard = (
 };
 
 // удалить карточку
-export const deleteCard = (req: Request, res: Response, next: NextFunction) => {
-  Card.findByIdAndRemove(req.params.cardId)
+// eslint-disable-next-line max-len
+export const deleteCard = (req: Request & { user?: JwtPayload | string }, res: Response, next: NextFunction) => {
+  Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
-        throw new NotFoundError('Карточка с указанным _id не найдена');
+        next(new NotFoundError(NOT_FOUND_MESSAGE));
+        return;
       }
-      res.send(card);
+      if (String(card.owner) !== (req.user as JwtPayload)._id) {
+        next(new CardOwnerError());
+        return;
+      }
+      card.remove().then(() => res.send(card)).catch(next);
     })
     .catch(next);
 };
 
 // поставить лайк карточке
 export const likeCard = (
-  req: Request & { user?: { _id: mongoose.ObjectId }},
+  req: Request & { user?: JwtPayload | string },
   res: Response,
   next: NextFunction,
 ) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $addToSet: { likes: req.user?._id } }, // добавить _id в массив, если его там нет
+    {
+      $addToSet: { likes: (req.user as JwtPayload)._id },
+    }, // добавить _id в массив, если его там нет
     { new: true },
   )
     .then((card) => {
       if (!card) {
-        throw new NotFoundError('Карточка с указанным _id не найдена');
+        throw new NotFoundError(NOT_FOUND_MESSAGE);
       }
       res.send(card);
     })
@@ -67,18 +76,20 @@ export const likeCard = (
 
 // убрать лайк с карточки
 export const dislikeCard = (
-  req: Request & { user?: { _id: mongoose.ObjectId }},
+  req: Request & { user?: JwtPayload | string },
   res: Response,
   next: NextFunction,
 ) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $pull: { likes: req.user?._id } }, // убрать _id из массива
+    {
+      $pull: { likes: (req.user as JwtPayload)._id },
+    }, // убрать _id из массива
     { new: true },
   )
     .then((card) => {
       if (!card) {
-        throw new NotFoundError('Карточка с указанным _id не найдена');
+        throw new NotFoundError(NOT_FOUND_MESSAGE);
       }
       res.send(card);
     })
