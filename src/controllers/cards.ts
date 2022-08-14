@@ -42,6 +42,7 @@ export const deleteCard = (
 ) => {
   Card.findById(req.params.cardId)
     .then((card) => {
+      console.log(req.params.cardId);
       if (!card) {
         next(new NotFoundError(NOT_FOUND_MESSAGE));
         return;

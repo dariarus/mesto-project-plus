@@ -1,10 +1,12 @@
 import mongoose from 'mongoose';
 import validator from 'validator';
 
+import { LINK_REGEX } from '../utils/constants';
+
 import { TUser } from '../services/types';
 
 function validateAvatarLink(v: string) {
-  return ('') || /^(https?):\/\/[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,20}(:[0-9]{1,5})?(\/.*)?$/i.test(v);
+  return ('') || LINK_REGEX.test(v);
 }
 
 const userSchema = new mongoose.Schema({

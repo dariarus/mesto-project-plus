@@ -3,7 +3,7 @@ import { MongoServerError } from 'mongodb';
 import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
 import { JwtPayload } from 'jsonwebtoken';
-import { errors } from 'celebrate';
+import { celebrate, errors, Joi } from 'celebrate';
 
 import userRouter from './routes/users';
 import cardRouter from './routes/cards';
@@ -33,9 +33,20 @@ const runApp = () => {
   // до всех обработчиков роутов подкл-ся логер запросов
   app.use(requestLogger);
 
-  app.post('/signin', login);
-  app.post('/signup', createUser);
+  app.post('/signin', celebrate({
+    body: Joi.object().keys({
+      email: Joi.string().required().email(),
+      password: Joi.string().required().min(4),
+    }),
+  }), login);
+  app.post('/signup', celebrate({
+    body: Joi.object().keys({
+      email: Joi.string().required().email(),
+      password: Joi.string().required().min(4),
+    }),
+  }), createUser);
 
+  // защита роутов авторизацией (только тех, для кот-ых она нужна)
   app.use(auth);
 
   app.use('/users', userRouter);

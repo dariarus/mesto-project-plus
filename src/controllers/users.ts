@@ -50,12 +50,8 @@ export const getUser = (req: Request & { user?: JwtPayload | string }, res: Resp
 
 export const login = (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
-  if (!email || !password) {
-    next(new BadRequestError());
-    return;
-  }
 
-  User.findOne({ email }).select('+password')
+  return User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
         next(new NotFoundError('Пользователь не найден'));
@@ -75,13 +71,13 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
             { expiresIn: '7d' },
           );
           // отправим токен, браузер сохранит его в куках
-          res.send({ token });
           res
             .cookie('jwt', token, {
-              maxAge: 3600000,
+              maxAge: 3600000 * 24, // токен действителен 24 часа
               httpOnly: true,
               sameSite: true,
             });
+          res.send({ token });
         }).catch(next);
     }).catch(next);
 };
@@ -91,9 +87,7 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
   const {
     email, password, name, about, avatar,
   } = req.body;
-  if (!password) {
-    next(new BadRequestError());
-  }
+
   bcrypt.hash(password, 10)
     .then((hash) => User.create({
       email,
@@ -115,12 +109,8 @@ export const updateProfile = (
   next: NextFunction,
 ) => {
   const { name, about } = req.body;
-  if ((!name && !about) || req.body.avatar) {
-    next(new BadRequestError());
-    return;
-  }
 
-  User.findByIdAndUpdate(
+  return User.findByIdAndUpdate(
     (req.user as JwtPayload)._id,
     { name, about },
     { new: true, runValidators: true },
@@ -141,10 +131,6 @@ export const updateAvatar = (
   next: NextFunction,
 ) => {
   const { avatar } = req.body;
-  if (!avatar || (req.body.name || req.body.about)) {
-    next(new BadRequestError());
-    return;
-  }
 
   User.findByIdAndUpdate(
     (req.user as JwtPayload)._id,

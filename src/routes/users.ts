@@ -8,41 +8,49 @@ import {
   updateAvatar, getUser,
 } from '../controllers/users';
 
-const router = Router();
+import { TOKEN_REGEX, LINK_REGEX, customValidateId } from '../utils/constants';
 
-const TOKEN_REGEX = /Bearer\s[A-Za-z0-9\-._~+/]+=*/;
+const router = Router();
 
 router.get('/', celebrate({
   headers: Joi.object().keys({
-    authorization: Joi.string().regex(TOKEN_REGEX).required(),
-  }),
+    cookie: Joi.string().regex(TOKEN_REGEX).required(),
+    // cookie: Joi.string().token().required(),
+  }).unknown(true),
 }), getUsers);
 
 router.get('/me', celebrate({
   headers: Joi.object().keys({
-    authorization: Joi.string().regex(TOKEN_REGEX).required(),
-  }),
+    cookie: Joi.string().regex(TOKEN_REGEX).required(),
+  }).unknown(true),
 }), getUser);
 
 router.get('/:userId', celebrate({
   headers: Joi.object().keys({
-    authorization: Joi.string().regex(TOKEN_REGEX).required(),
-  }),
+    cookie: Joi.string().regex(TOKEN_REGEX).required(),
+  }).unknown(true),
   params: Joi.object().keys({
-    userId: Joi.string().alphanum().length(24),
+    userId: Joi.string().custom(customValidateId, 'custom id validation'),
   }),
 }), getUserById);
 
 router.patch('/me', celebrate({
   headers: Joi.object().keys({
-    authorization: Joi.string().regex(TOKEN_REGEX).required(),
+    cookie: Joi.string().regex(TOKEN_REGEX).required(),
+  }).unknown(true),
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
   }),
 }), updateProfile);
 
 router.patch('/me/avatar', celebrate({
   headers: Joi.object().keys({
-    authorization: Joi.string().regex(TOKEN_REGEX).required(),
+    cookie: Joi.string().regex(TOKEN_REGEX).required(),
   }).unknown(true),
+  body: Joi.object().keys({
+    avatar: Joi.string().regex(LINK_REGEX),
+  }),
 }), updateAvatar);
 
 export default router;
