@@ -19,6 +19,8 @@ import NotFoundError from './errors/error-404';
 import auth from './middlewares/auth';
 import UniqueFieldConflict from './errors/error-409';
 
+import { LINK_REGEX } from './utils/constants';
+
 require('dotenv').config();
 
 const { PORT = 3000 } = process.env;
@@ -43,6 +45,9 @@ const runApp = () => {
     body: Joi.object().keys({
       email: Joi.string().required().email(),
       password: Joi.string().required().min(4),
+      name: Joi.string().min(2).max(30),
+      about: Joi.string().min(2).max(30),
+      avatar: Joi.string().regex(LINK_REGEX),
     }),
   }), createUser);
 
