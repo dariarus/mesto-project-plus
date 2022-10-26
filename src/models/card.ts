@@ -1,6 +1,12 @@
 import mongoose from 'mongoose';
 
+import { LINK_REGEX } from '../utils/constants';
+
 import { TCard } from '../services/types';
+
+function validateCardLink(v: string) {
+  return LINK_REGEX.test(v);
+}
 
 const cardSchema = new mongoose.Schema({
   name: {
@@ -11,7 +17,8 @@ const cardSchema = new mongoose.Schema({
   },
   link: {
     type: String,
-    require: true,
+    required: true,
+    validate: [validateCardLink, 'Validation card image URL error'],
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
@@ -21,7 +28,7 @@ const cardSchema = new mongoose.Schema({
   likes: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'user',
-    default: {},
+    default: [],
   }],
   createdAt: {
     type: Date,
